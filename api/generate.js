@@ -5,18 +5,31 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generate",
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generate?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
         },
         body: JSON.stringify(req.body),
       }
     );
 
-    const data = await response.json();
+    // log raw response for debugging
+    const text = await response.text();
+    console.log("Gemini raw response:", text);
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      console.error("JSON parse error:", err);
+      return res.status(500).json({
+        error: "Invalid JSON from Gemini",
+        raw: text,
+      });
+    }
+
     res.status(200).json(data);
   } catch (err) {
     console.error("Gemini API error:", err);
